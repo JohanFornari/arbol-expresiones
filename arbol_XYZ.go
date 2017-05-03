@@ -17,23 +17,8 @@ type Arbol struct {
 	Derecha *Arbol
 	Padre *Arbol
 }
-func InicializarArbol(t *Arbol) *Arbol{
+func InicializarArbol() *Arbol{
     return &Arbol{nil, "?", "?", nil,nil}
-}
-
-
-func insertar(pos string,t *Arbol, v string, w string) *Arbol {
-	if t == nil {
-		return &Arbol{nil, v, w, nil, nil}
-	}
-	if pos == "izq" {
-		t.Izquierda = insertar(pos,t.Izquierda, v , w)
-		t.Izquierda.Padre=t
-		return t
-	}
-	t.Derecha = insertar(pos,t.Derecha, v, w)
-	t.Derecha.Padre=t
-	return t
 }
 
 func RecorrerInorden (cadena *string,t *Arbol){
@@ -70,89 +55,69 @@ func RecorrerPosorden(t *Arbol) {
   fmt.Print(" - ")
 }
 
-
-
-func guardarEnArbo(t *Arbol, info []string) *Arbol{
+func GuardarTextoEnArbolPreorden(t *Arbol, info []string) *Arbol{
     var actual *Arbol
-    actual=t
     var exp string
-    
-    for i := 0; i < len(info); i++ {
+    actual=t
+    for  i := 0;i<len(info);i++{
         exp=evaluar(info[i])
-        val, err := strconv.Atoi(info[i])
-        if(err!=nil){
-            //fmt.Print("hubo error: ")
+        if(actual.Izquierda==nil){
+            actual.Izquierda=InicializarArbol()
+            actual.Izquierda.Padre=actual
+        }
+        if(actual.Derecha==nil){
+            actual.Derecha=InicializarArbol()
+            actual.Derecha.Padre=actual
+        }
+        if(exp=="Variable "){//solo funciona con maximo 2 variables al tiempo
+            if(actual.Padre==nil){
+                actual.Izquierda.Valor=info[i]
+                actual.Izquierda.Expresion=exp
+            }else if (actual.Padre.Expresion=="Operador "){
+                actual=actual.Padre
+                if(actual.Izquierda.Expresion=="?"){
+                    actual.Izquierda.Valor=info[i]
+                    actual.Izquierda.Expresion=exp
+                    actual=actual.Izquierda
+                }else{
+                    actual.Derecha.Valor=info[i]
+                    actual.Derecha.Expresion=exp
+                }
+                
+            }
+        }else if(exp=="Expresion "){
             actual.Valor=info[i]
             actual.Expresion=exp
-            //actual.Valor=info[i]
-            actual.Izquierda=InicializarArbol(actual.Izquierda)
-            actual.Izquierda.Padre=actual
-            actual.Derecha=InicializarArbol(actual.Derecha)
-            actual.Derecha.Padre=actual
-            //fmt.Println(actual.Izquierda.Padre.Valor)
+            actual=actual.Derecha
+        }else if(exp=="Operador "){
+            actual.Valor=info[i]
+            actual.Expresion=exp
             actual=actual.Izquierda
-
-        }else{
-            //fmt.Print("no hubo error: ")
-                   actual.Valor=info[i]
-                    actual.Expresion=exp
-                //fmt.Println(actual.Valor)
-                //fmt.Println(actual.Padre.Valor)
-                actual=actual.Padre
-                //fmt.Println("val",actual.Izquierda.Valor)
-                //fmt.Println("val",actual.Derecha.Valor)
-
+        }else if(exp=="Valor "){
+            actual.Valor=info[i]
+            actual.Expresion=exp
+            actual=actual.Padre
             for {
                 if(actual.Derecha.Valor=="?"){
-                  //  fmt.Println("No hay por derecha")
-
-                        actual=actual.Derecha
-                        break
-
+                    actual=actual.Derecha
+                    break
                 }else{
-                    //fmt.Println("Si hay por derecha")
-    //                for {
-  //                      if((actual.Derecha.Valor!="?")&&(actual!=t)){
-//  		                actual=actual.Padre
-//                        }else{
-                        //    break;
-                      //  }
-	                //}
 	                if(actual!=t){
                         actual=actual.Padre
                     }else{
                         break
                     }
-
                 }
             }
-            if(i==len(info)-1){
-                break
-            }
         }
-        if(val==0){
-
-        }
-        //fmt.Println("Finalizo ciclo:, Actual:",actual.Valor," padre:",actual.Padre.Valor,"izq: ",
-        //actual.Padre.Izquierda.Valor,"der: ",actual.Padre.Derecha.Valor)
-
-	}
-	return actual
+    }
+    return t
 }
 
 
 
 func pruebaLeerOperacion(op string) string{
-    var operacion2 = " "
-    var po=&operacion2
-
-    var ar *Arbol
-    ar=InicializarArbol(ar)
-    var operacion=op
-    var caracteres = strings.Split(operacion," ")
-    ar= guardarEnArbo(ar,caracteres)
-    RecorrerInorden(po,ar)
-    return operacion2
+    return "hola"
 }
 
 
@@ -163,8 +128,9 @@ func pruebaLeerOperacion(op string) string{
 // evalua exprecion
 
 func expresiones(t *Arbol) int{
-
-	if t.Valor == "+" {
+    if(t.Valor==":=" && evaluar(t.Izquierda.Valor)=="Variable "){
+        return expresiones(t.Derecha)
+    }else if t.Valor == "+" {
 		return expresiones(t.Izquierda)+expresiones(t.Derecha)
 	}else if t.Valor == "-" {
 		return expresiones(t.Izquierda)-expresiones(t.Derecha)
@@ -188,19 +154,19 @@ func evaluar(text string) string{
     var exp string
 
     if(r.MatchString(text)){
-        fmt.Println("Valor: ",text) 
-        exp = "Valor: "
+        //fmt.Println("Valor: ",text) 
+        exp = "Valor "
       
     }else if(t.MatchString(text)){
-        fmt.Println("Operador: ",text) 
-        exp = "Operador: "
+        //fmt.Println("Operador: ",text) 
+        exp = "Operador "
         
     }else if(u.MatchString(text)){
-        fmt.Println("Expresion: ",text) 
-        exp = "Expresion: "
+        //fmt.Println("Expresion: ",text) 
+        exp = "Expresion "
     }else if(s.MatchString(text)){
-        fmt.Println("Variable: ",text) 
-        exp = "Variable: "
+        //fmt.Println("Variable: ",text) 
+        exp = "Variable "
     }
     return exp
 }
@@ -208,47 +174,100 @@ func evaluar(text string) string{
 
 
 func main() {
-
-	var text string
+    var operacion string
 	var scanner=bufio.NewScanner(os.Stdin)
-
+    
 	fmt.Println("\narbol de prueba\n")
-	text="X := - - + 5 3 - 1 2 * 5 - 8 / + 2 16 * + 8 7 - + 1 2 5";
-	fmt.Println(text)
+	operacion="X := - - + 5 3 - 1 2 * 5 - 8 / + 2 16 * + 8 7 - + 1 2 5";
+	fmt.Println(operacion)
 
-	var operacion = text
 
 
 	var ar *Arbol
-	ar=InicializarArbol(ar)
+	ar=InicializarArbol()
+
 
 	var caracteres = strings.Split(operacion," ")
-	ar= guardarEnArbo(ar,caracteres)
+
+	//fmt.Println(caracteres[0]+","+caracteres[1]+","+caracteres[2]+","+caracteres[3])
+	
+
+    
+	ar= GuardarTextoEnArbolPreorden(ar,caracteres)
 
 
-	fmt.Println(" \nEcuacion: \n")
-	text=pruebaLeerOperacion(text)
-	fmt.Println(text)
+
+
+//	fmt.Println(" \nEcuacion: \n")
+//	text=pruebaLeerOperacion(text[5:])
+//	fmt.Println(text)
+
 
 	fmt.Println("\nresultado: ",expresiones(ar))
 
+    var X *Arbol
+    var Y *Arbol
+    var Z *Arbol
+   
+    Y=InicializarArbol()
+    Z=InicializarArbol()
+     X=InicializarArbol()
+    
+    fmt.Println("\nIngrese 3 arboles en preorden\n")
 
-	fmt.Println("\nIngrese en preorden (R - I - D) la operacion con un espacio entre cada caracter o numero.\n")
+	fmt.Println("\nArbole 1\n")
 	scanner.Scan()
-	text = scanner.Text()
-	operacion=text
-	fmt.Println(" \nEcuacion: \n")
-  text=pruebaLeerOperacion(text)
-  fmt.Println(text)
+	operacion = scanner.Text()
+//	fmt.Println(" \nEcuacion: \n")
+ // text=pruebaLeerOperacion(text)
+    fmt.Println(operacion)
+    caracteres = strings.Split(operacion," ")
+	X= GuardarTextoEnArbolPreorden(X,caracteres)
 
-	ar=InicializarArbol(ar)
+	fmt.Println("\nArbol 2.\n")
+	scanner.Scan()
+	operacion = scanner.Text()
+	
+//	fmt.Println(" \nEcuacion: \n")
+ // text=pruebaLeerOperacion(text)
+    fmt.Println(operacion)
+    caracteres = strings.Split(operacion," ")
+	Y= GuardarTextoEnArbolPreorden(Y,caracteres)
+	
+	fmt.Println("\nArbol 3\n")
+	scanner.Scan()
+	operacion = scanner.Text()
 
-	caracteres = strings.Split(operacion," ")
-	ar= guardarEnArbo(ar,caracteres)
-	fmt.Println("\nresultado: ",expresiones(ar))
+    fmt.Println(operacion)
+    caracteres = strings.Split(operacion," ")
+	Z= GuardarTextoEnArbolPreorden(Z,caracteres)
+		
+	fmt.Println(Z.Valor)
+	fmt.Println(Z.Izquierda.Valor)
+	fmt.Println(Z.Derecha.Valor)
+	fmt.Println(Z.Derecha.Izquierda.Valor)
+	fmt.Println(Z.Derecha.Derecha.Valor)
+	
+	if(Z.Derecha.Izquierda.Valor==X.Izquierda.Valor){
+	    Z.Derecha.Izquierda=X
+	}
+	if(Z.Derecha.Derecha.Valor==X.Izquierda.Valor){
+	    Z.Derecha.Derecha=X
 
-// GUARDAR ESTRUCTURA DE DATOS (EXPRESION, "")
+	}
+    if(Z.Derecha.Izquierda.Valor==Y.Izquierda.Valor){
+	    Z.Derecha.Izquierda=Y
+	}
 
+	if(Z.Derecha.Derecha.Valor==Y.Izquierda.Valor){
+	    Z.Derecha.Derecha=Y
+	}
 
+	
+
+	fmt.Println("\nResultados\n\n"+X.Izquierda.Valor+X.Valor,expresiones(X))
+	fmt.Println("\n"+Y.Izquierda.Valor+Y.Valor,expresiones(Y))
+	fmt.Println("\n"+Z.Izquierda.Valor+Z.Valor,expresiones(Z))
+	
 
 }
