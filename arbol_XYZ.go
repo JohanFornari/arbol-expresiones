@@ -6,30 +6,32 @@ import (
 	"strconv"
     "bufio"
     "os"
+    "regexp"
 	//"math/rand"
 )
 // arbol binario con valores enteros.
 type Arbol struct {
 	Izquierda  *Arbol
 	Valor string
+	Expresion string
 	Derecha *Arbol
 	Padre *Arbol
 }
 func InicializarArbol(t *Arbol) *Arbol{
-    return &Arbol{nil, "?",nil,nil}
+    return &Arbol{nil, "?", "?", nil,nil}
 }
 
 
-func insertar(pos string,t *Arbol, v string) *Arbol {
+func insertar(pos string,t *Arbol, v string, w string) *Arbol {
 	if t == nil {
-		return &Arbol{nil, v, nil, nil}
+		return &Arbol{nil, v, w, nil, nil}
 	}
 	if pos == "izq" {
-		t.Izquierda = insertar(pos,t.Izquierda, v)
+		t.Izquierda = insertar(pos,t.Izquierda, v , w)
 		t.Izquierda.Padre=t
 		return t
 	}
-	t.Derecha = insertar(pos,t.Derecha, v)
+	t.Derecha = insertar(pos,t.Derecha, v, w)
 	t.Derecha.Padre=t
 	return t
 }
@@ -40,7 +42,7 @@ func RecorrerInorden (cadena *string,t *Arbol){
 		return
 	}
 	RecorrerInorden(cadena,t.Izquierda)
-	*cadena=(*cadena+t.Valor+" ")
+	*cadena=(*cadena+ t.Expresion +" "+ t.Valor+" ")
 	//fmt.Print(t.Valor)
     //fmt.Print(" ")
 	RecorrerInorden(cadena,t.Derecha)
@@ -73,11 +75,15 @@ func RecorrerPosorden(t *Arbol) {
 func guardarEnArbo(t *Arbol, info []string) *Arbol{
     var actual *Arbol
     actual=t
+    var exp string
+    
     for i := 0; i < len(info); i++ {
+        exp=evaluar(info[i])
         val, err := strconv.Atoi(info[i])
         if(err!=nil){
             //fmt.Print("hubo error: ")
             actual.Valor=info[i]
+            actual.Expresion=exp
             //actual.Valor=info[i]
             actual.Izquierda=InicializarArbol(actual.Izquierda)
             actual.Izquierda.Padre=actual
@@ -88,7 +94,8 @@ func guardarEnArbo(t *Arbol, info []string) *Arbol{
 
         }else{
             //fmt.Print("no hubo error: ")
-                actual.Valor=info[i]
+                   actual.Valor=info[i]
+                    actual.Expresion=exp
                 //fmt.Println(actual.Valor)
                 //fmt.Println(actual.Padre.Valor)
                 actual=actual.Padre
@@ -171,6 +178,33 @@ func expresiones(t *Arbol) int{
 	}
 }
 
+func evaluar(text string) string{
+    
+    r, _ := regexp.Compile("^([0-9]+$)")
+    s, _ := regexp.Compile("^([A-Z]+$)")
+    t, _ := regexp.Compile("^([+]|[-]|[/]|[*])")
+    u, _ := regexp.Compile("^([:=])")
+   
+    var exp string
+
+    if(r.MatchString(text)){
+        fmt.Println("Valor: ",text) 
+        exp = "Valor: "
+      
+    }else if(t.MatchString(text)){
+        fmt.Println("Operador: ",text) 
+        exp = "Operador: "
+        
+    }else if(u.MatchString(text)){
+        fmt.Println("Expresion: ",text) 
+        exp = "Expresion: "
+    }else if(s.MatchString(text)){
+        fmt.Println("Variable: ",text) 
+        exp = "Variable: "
+    }
+    return exp
+}
+
 
 
 func main() {
@@ -179,7 +213,7 @@ func main() {
 	var scanner=bufio.NewScanner(os.Stdin)
 
 	fmt.Println("\narbol de prueba\n")
-	text="- - + 5 3 - 1 2 * 5 - 8 / + 2 16 * + 8 7 - + 1 2 5";
+	text="X := - - + 5 3 - 1 2 * 5 - 8 / + 2 16 * + 8 7 - + 1 2 5";
 	fmt.Println(text)
 
 	var operacion = text
