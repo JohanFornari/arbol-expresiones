@@ -9,7 +9,7 @@ import (
     "regexp"
 
 )
-// arbol binario con valores enteros.
+// estructura arbol donde se guarda el valor y la expresion correspondiente
 type Arbol struct {
 	Izquierda  *Arbol
 	Valor string
@@ -17,24 +17,25 @@ type Arbol struct {
 	Derecha *Arbol
 	Padre *Arbol
 }
+//inicializa el arbol
 func InicializarArbol() *Arbol{
     return &Arbol{nil, "?", "?", nil,nil}
 }
 
+// se imprime el arbon con los valores y expreciones en inorden
 func RecorrerInorden (t *Arbol){
 
 	if t == nil {
 		return
 	}
+	
 	RecorrerInorden(t.Izquierda)
-	//*cadena=(*cadena+ t.Expresion +": "+ t.Valor+" ")
 	if(t.Valor != "?"){
 	fmt.Println(t.Expresion +": "+ t.Valor+" ")
 	}
 	RecorrerInorden(t.Derecha)
-
-
 }
+
 
 func RecorrerPreorden(t *Arbol) {
 	if t == nil {
@@ -56,6 +57,7 @@ func RecorrerPosorden(t *Arbol) {
   fmt.Print(" - ")
 }
 
+//guarda el arbol en preorden recibiendo una cadena de strings
 func GuardarTextoEnArbolPreorden(t *Arbol, info []string) *Arbol{
     var actual *Arbol
     var exp string
@@ -116,8 +118,7 @@ func GuardarTextoEnArbolPreorden(t *Arbol, info []string) *Arbol{
 }
 
 
-// evalua exprecion
-
+// evalua el arbol validando las variables y expreciones 
 func expresiones(t *Arbol) int{
     if(t.Valor==":=" && evaluar(t.Izquierda.Valor)=="Variable "){
         return expresiones(t.Derecha)
@@ -135,6 +136,8 @@ func expresiones(t *Arbol) int{
 	}
 }
 
+
+//compara las expreciones del arbol 
 func evaluar(text string) string{
     
     r, _ := regexp.Compile("^([0-9]+$)")
@@ -163,7 +166,6 @@ func evaluar(text string) string{
 }
 
 
-
 func main() {
     var operacion string
 	var scanner=bufio.NewScanner(os.Stdin)
@@ -172,40 +174,28 @@ func main() {
 	operacion="X := - - + 5 3 - 1 2 * 5 - 8 / + 2 16 * + 8 7 - + 1 2 5";
 	fmt.Println(operacion)
 
-
-
 	var ar *Arbol
 	ar=InicializarArbol()
-
-
 	var caracteres = strings.Split(operacion," ")
-
-    
 	ar= GuardarTextoEnArbolPreorden(ar,caracteres)
-
-
-//	fmt.Println(" \nEcuacion: \n")
-//	text=pruebaLeerOperacion(text[5:])
-//	fmt.Println(text)
-
-
 	fmt.Println("\nresultado: ",expresiones(ar))
-
+	
+    // se inicializan los 3 arboles a operar 
     var X *Arbol
     var Y *Arbol
     var Z *Arbol
    
     Y=InicializarArbol()
     Z=InicializarArbol()
-     X=InicializarArbol()
+    X=InicializarArbol()
     
+    // se ingresan los arboles 
     fmt.Println("\nIngrese 3 arboles en preorden\n")
 
 	fmt.Println("\nArbol 1\n")
 	scanner.Scan()
 	operacion = scanner.Text()
-//	fmt.Println(" \nEcuacion: \n")
- // text=pruebaLeerOperacion(text)
+
     fmt.Println(operacion)
     caracteres = strings.Split(operacion," ")
 	X= GuardarTextoEnArbolPreorden(X,caracteres)
@@ -216,8 +206,6 @@ func main() {
 	scanner.Scan()
 	operacion = scanner.Text()
 	
-//	fmt.Println(" \nEcuacion: \n")
- // text=pruebaLeerOperacion(text)
     fmt.Println(operacion)
     caracteres = strings.Split(operacion," ")
 	Y= GuardarTextoEnArbolPreorden(Y,caracteres)
@@ -234,8 +222,7 @@ func main() {
 	RecorrerInorden(Z)
 	fmt.Println("\n")
 		
-
-	
+    //valida el arbol de Z con X y Y
 	if(Z.Derecha.Izquierda.Valor==X.Izquierda.Valor){
 	    Z.Derecha.Izquierda=X
 	}
@@ -251,11 +238,8 @@ func main() {
 	    Z.Derecha.Derecha=Y
 	}
     
-	
-
 	fmt.Println("\nResultados\n\n"+X.Izquierda.Valor+X.Valor,expresiones(X))
 	fmt.Println("\n"+Y.Izquierda.Valor+Y.Valor,expresiones(Y))
 	fmt.Println("\n"+Z.Izquierda.Valor+Z.Valor,expresiones(Z))
 	
-
 }
