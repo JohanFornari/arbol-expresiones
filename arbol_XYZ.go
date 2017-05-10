@@ -237,7 +237,9 @@ func main() {
 	if(Z.Derecha.Derecha.Valor==Y.Izquierda.Valor){
 	    Z.Derecha.Derecha=Y
 	}
-    
+	
+	RecorrerInorden(Z)
+	
 	fmt.Println("\nResultados\n\n"+X.Izquierda.Valor+X.Valor,expresiones(X))
 	fmt.Println("\n"+Y.Izquierda.Valor+Y.Valor,expresiones(Y))
 	fmt.Println("\n"+Z.Izquierda.Valor+Z.Valor,expresiones(Z))
